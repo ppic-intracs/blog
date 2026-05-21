@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BlogKu + Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ===== CSS (SAMA SEPERTI SEBELUMNYA) ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; }
+        .navbar { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; }
+        .navbar .logo { font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .navbar .logo span { background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; }
+        .hamburger { display: none; flex-direction: column; justify-content: space-between; width: 30px; height: 21px; background: transparent; border: none; cursor: pointer; }
+        .hamburger span { display: block; width: 100%; height: 3px; background: white; border-radius: 3px; transition: 0.3s; }
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(6px, 6px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(6px, -6px); }
+        .container { display: flex; min-height: calc(100vh - 60px); }
+        .sidebar { width: 320px; background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; z-index: 500; }
+        .sidebar-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; text-align: center; flex-shrink: 0; }
+        .sidebar-header h3 { font-size: 1.1rem; }
+        .sidebar-header p { font-size: 0.85rem; opacity: 0.9; margin-top: 5px; }
+        .sidebar-search { padding: 15px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; }
+        .sidebar-search input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 25px; font-size: 0.9rem; outline: none; }
+        .sidebar-search input:focus { border-color: #667eea; }
+        .article-list { list-style: none; padding: 10px 0; }
+        .article-list li { border-bottom: 1px solid #f0f0f0; }
+        .article-list li a { display: flex; align-items: flex-start; gap: 12px; padding: 15px 20px; text-decoration: none; color: #333; cursor: pointer; transition: 0.2s; }
+        .article-list li a:active { background: #f0f0f0; }
+        .article-list li a.active { background: #f0f4ff; border-left: 4px solid #667eea; font-weight: 600; }
+        .article-number { background: #f0f4ff; color: #667eea; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+        .article-list li a.active .article-number { background: #667eea; color: white; }
+        .article-info { flex: 1; min-width: 0; }
+        .article-info h4 { font-size: 0.9rem; line-height: 1.4; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .article-meta { font-size: 0.75rem; color: #999; display: flex; gap: 8px; flex-wrap: wrap; }
+        .article-meta .category { background: #f0f0f0; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+        .sidebar-overlay { display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 400; }
+        .sidebar-overlay.show { display: block; }
+        .main-content { flex: 1; padding: 20px; }
+        .article-display { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+        .article-cover { width: 100%; height: 200px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; }
+        .article-body { padding: 25px 20px; }
+        .article-body h1 { font-size: 1.5rem; color: #333; margin-bottom: 12px; line-height: 1.3; }
+        .meta-bar { display: flex; gap: 15px; padding-bottom: 15px; margin-bottom: 20px; border-bottom: 2px solid #f0f2f5; font-size: 0.85rem; color: #888; flex-wrap: wrap; }
+        .content { font-size: 1rem; line-height: 1.7; color: #444; }
+        .content p { margin-bottom: 15px; text-align: justify; }
+        .content h2 { color: #667eea; margin: 25px 0 12px; font-size: 1.2rem; }
+        .content blockquote { border-left: 4px solid #667eea; background: #f8f9ff; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; font-style: italic; color: #555; }
+        .content ul, .content ol { margin: 15px 0; padding-left: 20px; }
+        .content li { margin-bottom: 8px; }
+        .welcome-section { text-align: center; padding: 40px 20px; }
+        .welcome-section h1 { font-size: 1.8rem; margin-bottom: 12px; }
+        .welcome-section p { font-size: 1rem; color: #666; line-height: 1.6; margin-bottom: 25px; }
+        .stats { display: flex; justify-content: center; gap: 30px; margin-top: 25px; flex-wrap: wrap; }
+        .stat-item .number { font-size: 1.8rem; font-weight: 700; color: #667eea; }
+        .stat-item .label { font-size: 0.8rem; color: #999; margin-top: 3px; }
+        .upload-btn { position: fixed; bottom: 25px; right: 25px; width: 56px; height: 56px; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border: none; border-radius: 50%; font-size: 1.8rem; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4); z-index: 999; display: flex; align-items: center; justify-content: center; }
+        .upload-btn:active { transform: scale(0.95); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: white; border-radius: 16px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { padding: 20px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 10; }
+        .modal-header h2 { color: #333; font-size: 1.2rem; }
+        .modal-close { background: #f0f0f0; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #666; display: flex; align-items: center; justify-content: center; }
+        .modal-body { padding: 20px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #444; font-size: 0.9rem; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; font-family: inherit; outline: none; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #667eea; }
+        .form-group textarea { min-height: 150px; resize: vertical; }
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .footer { text-align: center; padding: 15px; color: #999; font-size: 0.8rem; background: white; border-top: 1px solid #e0e0e0; }
+        .loading { text-align: center; padding: 40px; color: #667eea; font-weight: 500; }
+        .error-msg { background: #ffeaea; color: #c0392b; padding: 12px; border-radius: 8px; margin: 10px 15px; font-size: 0.9rem; text-align: center; }
+        @media (max-width: 768px) {
+            .hamburger { display: flex; }
+            .sidebar { position: fixed; top: 60px; left: 0; width: 280px; max-width: 85vw; height: calc(100vh - 60px); transform: translateX(-100%); box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { padding: 15px; }
+            .article-body h1 { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="logo">📝 Blog<span>Ku</span></div>
+        <div style="width: 30px;"></div>
+    </nav>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div class="container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Daftar Artikel</h3>
+                <p id="article-count">Memuat...</p>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="searchInput" placeholder="🔍 Cari artikel..." oninput="searchArticles()">
+            </div>
+            <ul class="article-list" id="articleList"></ul>
+        </aside>
+
+        <main class="main-content" id="mainContent">
+            <div class="loading">⏳ Memuat artikel dari database...</div>
+        </main>
+    </div>
+
+    <div class="footer">&copy; 2026 BlogKu + Supabase</div>
+
+    <button class="upload-btn" onclick="openModal()" title="Upload Artikel Baru">+</button>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>✍️ Upload Artikel Baru</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="submitArticle(event)">
+                    <div class="form-group">
+                        <label>Judul Artikel *</label>
+                        <input type="text" id="inputTitle" placeholder="Masukkan judul artikel..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <select id="inputCategory">
+                            <option value="Teknologi">Teknologi</option>
+                            <option value="Tutorial">Tutorial</option>
+                            <option value="Tips & Trik">Tips & Trik</option>
+                            <option value="Opini">Opini</option>
+                            <option value="Lifestyle">Lifestyle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Konten Artikel *</label>
+                        <textarea id="inputContent" placeholder="Tulis konten artikel di sini..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit" id="submitBtn">📤 Publikasikan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🔑 ISI DENGAN DATA DARI SUPABASE DASHBOARD
+        // ==========================================
+        const SUPABASE_URL = 'https://niumzhpcijztofrajwnf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pdW16aHBjaWp6dG9mcmFqd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzg2NjIsImV4cCI6MjA5NDkxNDY2Mn0._AgZjHcp_cyLjNwTHcbEGA2Qv0LB4oVIjcRyt7wL5Zk';
+
+        // ✅ FIX: Gunakan nama berbeda agar tidak bentrok dengan global window.supabase
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let articles = [];
+        let activeArticleId = null;
+        let isLoading = false;
+
+        function formatDate(isoString) {
+            if (!isoString) return '-';
+            return new Date(isoString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        async function fetchArticles() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            const mainContent = document.getElementById('mainContent');
+            if (articles.length === 0) {
+                mainContent.innerHTML = `<div class="loading">⏳ Memuat artikel...</div>`;
+            }
+
+            // ✅ FIX: Menggunakan supabaseClient
+            const { data, error } = await supabaseClient
+                .from('articles')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            isLoading = false;
+
+            if (error) {
+                console.error('Supabase Error:', error);
+                mainContent.innerHTML = `
+                    <div class="article-display">
+                        <div class="error-msg">❌ Gagal memuat data: ${error.message}<br>
+                        <small>Pastikan URL & API Key benar, dan tabel 'articles' sudah dibuat.</small></div>
+                        <div class="welcome-section">
+                            <h1>👋 Mode Demo</h1>
+                            <p>Database belum terhubung. Anda bisa melanjutkan mengisi form upload untuk tes insert.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            articles = data || [];
+            renderSidebar();
+            showWelcome();
+        }
+
+        function renderSidebar(filtered = null) {
+            const list = document.getElementById('articleList');
+            const data = filtered || articles;
+
+            document.getElementById('article-count').textContent = `${articles.length} artikel tersedia`;
+
+            if (data.length === 0) {
+                list.innerHTML = `<li><div style="padding:30px;text-align:center;color:#999;">📭 Belum ada artikel</div></li>`;
+                return;
+            }
+
+            list.innerHTML = data.map((article, index) => `
+                <li>
+                    <a onclick="selectArticle(${article.id})" class="${article.id === activeArticleId ? 'active' : ''}">
+                        <span class="article-number">${index + 1}</span>
+                        <div class="article-info">
+                            <h4>${article.title}</h4>
+                            <div class="article-meta">
+                                <span>${formatDate(article.created_at)}</span>
+                                <span class="category">${article.category}</span>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            `).join('');
+        }
+
+        function selectArticle(id) {
+            showArticle(id);
+            if (window.innerWidth <= 768) closeSidebar();
+        }
+
+        function showArticle(id) {
+            const article = articles.find(a => a.id === id);
+            if (!article) return;
+
+            activeArticleId = id;
+            renderSidebar();
+
+            const gradients = [
+                'linear-gradient(135deg, #667eea, #764ba2)',
+                'linear-gradient(135deg, #f093fb, #f5576c)',
+                'linear-gradient(135deg, #4facfe, #00f2fe)',
+                'linear-gradient(135deg, #43e97b, #38f9d7)',
+                'linear-gradient(135deg, #fa709a, #fee140)',
+                'linear-gradient(135deg, #a18cd1, #fbc2eb)',
+            ];
+            const gradient = gradients[id % gradients.length];
+
+            document.getElementById('mainContent').innerHTML = `
+                <div class="article-display">
+                    <div class="article-cover" style="background: ${gradient};">📄</div>
+                    <div class="article-body">
+                        <h1>${article.title}</h1>
+                        <div class="meta-bar">
+                            <span>📅 ${formatDate(article.created_at)}</span>
+                            <span>🏷️ ${article.category}</span>
+                            <span>⏱️ ${Math.max(1, Math.ceil(article.content.split(' ').length / 200))} menit</span>
+                        </div>
+                        <div class="content">${formatContent(article.content)}</div>
+                    </div>
+                </div>
+            `;
+            window.scrollTo(0, 0);
+        }
+
+        function formatContent(text) {
+            if (!text) return '<p>Kosong</p>';
+            return text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>').replace(/^(.*?)$/, '<p>$1</p>');
+        }
+
+        function showWelcome() {
+            activeArticleId = null;
+            renderSidebar();
+            document.getElementById('mainContent').innerHTML = `
+                <div class="article-display">
+                    <div class="welcome-section">
+                        <h1>👋 Selamat Datang di BlogKu</h1>
+                        <p>Artikel tersimpan di database Supabase. Klik artikel di sidebar untuk membaca, atau tambahkan artikel baru.</p>
+                        <div class="stats">
+                            <div class="stat-item"><div class="number">${articles.length}</div><div class="label">Artikel</div></div>
+                            <div class="stat-item"><div class="number">${[...new Set(articles.map(a => a.category))].length}</div><div class="label">Kategori</div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function searchArticles() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            renderSidebar(articles.filter(a => 
+                a.title.toLowerCase().includes(query) || a.category.toLowerCase().includes(query)
+            ));
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+            document.getElementById('hamburger').classList.toggle('active');
+            document.body.classList.toggle('sidebar-open');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+            document.getElementById('hamburger').classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        async function submitArticle(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const title = document.getElementById('inputTitle').value.trim();
+            const category = document.getElementById('inputCategory').value;
+            const content = document.getElementById('inputContent').value.trim();
+
+            if (!title || !content) return;
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Menyimpan...';
+
+            // ✅ FIX: Menggunakan supabaseClient
+            const { data, error } = await supabaseClient
+                .from('articles')
+                .insert({ title, category, content })
+                .select()
+                .single();
+
+            btn.disabled = false;
+            btn.textContent = '📤 Publikasikan';
+
+            if (error) {
+                alert('❌ Gagal menyimpan: ' + error.message);
+                return;
+            }
+
+            closeModal();
+            document.getElementById('inputTitle').value = '';
+            document.getElementById('inputContent').value = '';
+            
+            await fetchArticles();
+            if (data) showArticle(data.id);
+            
+            showNotification('✅ Artikel berhasil dipublikasikan!');
+        }
+
+        function showNotification(msg) {
+            const el = document.createElement('div');
+            el.textContent = msg;
+            el.style.cssText = `position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#27ae60;color:white;padding:12px 24px;border-radius:25px;box-shadow:0 4px 15px rgba(0,0,0,0.2);z-index:3000;font-weight:600;font-size:0.9rem;`;
+            document.body.appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+        }
+
+        document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+        window.addEventListener('resize', () => { if (window.innerWidth > 768) closeSidebar(); });
+        
+        // Jalankan saat halaman dimuat
+        fetchArticles();
+    </script>
+</body>
+</html>
