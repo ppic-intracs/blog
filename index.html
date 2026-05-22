@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BlogKu + Supabase</title>
+    <title>BlogKu</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ===== CSS (SAMA SEPERTI SEBELUMNYA) ===== */
@@ -76,13 +76,144 @@
         .footer { text-align: center; padding: 15px; color: #999; font-size: 0.8rem; background: white; border-top: 1px solid #e0e0e0; }
         .loading { text-align: center; padding: 40px; color: #667eea; font-weight: 500; }
         .error-msg { background: #ffeaea; color: #c0392b; padding: 12px; border-radius: 8px; margin: 10px 15px; font-size: 0.9rem; text-align: center; }
-        @media (max-width: 768px) {
-            .hamburger { display: flex; }
-            .sidebar { position: fixed; top: 60px; left: 0; width: 280px; max-width: 85vw; height: calc(100vh - 60px); transform: translateX(-100%); box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { padding: 15px; }
-            .article-body h1 { font-size: 1.3rem; }
-        }
+@media (max-width: 768px) {
+    .hamburger { display: flex; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 280px; max-width: 85vw; height: calc(100vh - 60px); transform: translateX(-100%); box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+    .sidebar.open { transform: translateX(0); }
+    
+    /* ✅ MAIN CONTENT - Proportional Mobile */
+    .main-content { 
+        padding: 12px; 
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+    
+    .article-body h1 { font-size: 1.3rem; }
+    
+    /* ✅ ARTICLE DISPLAY - Full Width & Proportional */
+    .article-display {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .article-cover {
+        height: 180px; /* Sedikit lebih pendek untuk mobile */
+        width: 100%;
+    }
+    
+    .article-body {
+        padding: 20px 16px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* ✅ CONTENT TEXT - Responsive & Justify */
+    .content {
+        font-size: 0.95rem;
+        line-height: 1.8;
+        width: 100%;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+    
+    .content p { 
+        margin-bottom: 15px; 
+        text-align: justify !important; 
+        text-justify: inter-word;
+        hyphens: auto;
+        -webkit-hyphens: auto;
+        width: 100%;
+    }
+    
+    .content h2 {
+        font-size: 1.15rem;
+        margin: 20px 0 10px;
+        width: 100%;
+    }
+    
+    .content blockquote {
+        margin: 15px 0;
+        padding: 12px 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .content ul, .content ol {
+        margin: 15px 0;
+        padding-left: 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* ✅ META BAR - Wrap & Compact */
+    .meta-bar {
+        gap: 10px;
+        font-size: 0.8rem;
+        flex-wrap: wrap;
+        padding-bottom: 12px;
+        margin-bottom: 18px;
+    }
+    
+    /* ✅ WELCOME SECTION - Responsive */
+    .welcome-section {
+        padding: 30px 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.5rem;
+        width: 100%;
+    }
+    
+    .welcome-section p {
+        font-size: 0.95rem;
+        width: 100%;
+    }
+    
+    .stats {
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .stat-item .number {
+        font-size: 1.5rem;
+    }
+    
+    /* ✅ MODAL - Full Width Mobile */
+    .modal {
+        width: 95vw;
+        max-width: 95vw;
+        margin: 10px;
+        border-radius: 12px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 1rem; /* Mencegah zoom otomatis di iOS */
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* ✅ FLOATING BUTTON - Adjust Position */
+    .upload-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 52px;
+        height: 52px;
+        font-size: 1.6rem;
+    }
+}
     </style>
 </head>
 <body>
