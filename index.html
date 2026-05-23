@@ -6,11 +6,9 @@
     <title>Catatan Kecilku</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- ✨ Google Fonts: JetBrains Mono (sama seperti Notes website) -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        /* ===== THEME: MASCULINE ELEGANT + JETBRAINS MONO ===== */
         :root {
             --primary: #3a4a55;
             --primary-dark: #263238;
@@ -27,9 +25,9 @@
             --border-soft: #f0ede8;
             --shadow: 0 2px 16px rgba(38, 50, 56, 0.06);
             --shadow-soft: 0 1px 8px rgba(38, 50, 56, 0.04);
-            
-            /* ✨ FONT: JetBrains Mono (konsisten dengan Notes website) */
             --font-mono: 'JetBrains Mono', monospace;
+            --padding-mobile: 16px;
+            --padding-desktop: 20px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -46,11 +44,10 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ===== NAVBAR ===== */
         .navbar { 
             background: linear-gradient(135deg, var(--primary-dark), var(--primary)); 
             color: white; 
-            padding: 12px 20px; 
+            padding: 12px var(--padding-desktop); 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
@@ -81,7 +78,6 @@
             text-transform: uppercase;
         }
 
-        /* ===== HAMBURGER MENU ===== */
         .hamburger { 
             display: none; 
             flex-direction: column; 
@@ -105,10 +101,8 @@
         .hamburger.active span:nth-child(2) { opacity: 0; }
         .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
 
-        /* ===== CONTAINER & LAYOUT ===== */
         .container { display: flex; min-height: calc(100vh - 56px); }
 
-        /* ===== SIDEBAR ===== */
         .sidebar { 
             width: 280px; 
             background: var(--bg-sidebar); 
@@ -166,7 +160,6 @@
             box-shadow: 0 0 0 3px rgba(184, 165, 142, 0.12);
         }
 
-        /* ===== ARTICLE LIST ===== */
         .article-list { list-style: none; padding: 6px 0; }
         .article-list li { border-bottom: 1px solid var(--border-soft); }
         .article-list li a { 
@@ -244,6 +237,7 @@
             text-transform: uppercase;
         }
 
+        /* ✅ FIX: Sidebar overlay untuk mobile */
         .sidebar-overlay { 
             display: none; 
             position: fixed; 
@@ -256,8 +250,7 @@
         }
         .sidebar-overlay.show { display: block; }
 
-        /* ===== MAIN CONTENT ===== */
-        .main-content { flex: 1; padding: 22px 20px; }
+        .main-content { flex: 1; padding: 22px var(--padding-desktop); }
         .article-display { 
             background: var(--bg-card); 
             border-radius: 14px; 
@@ -266,7 +259,6 @@
             border: 1px solid var(--border-soft);
         }
 
-        /* ===== ARTICLE COVER ===== */
         .article-cover { 
             width: 100%; 
             height: 140px; 
@@ -290,8 +282,7 @@
             opacity: 0.6;
         }
 
-        /* ===== ARTICLE BODY ===== */
-        .article-body { padding: 24px 20px; }
+        .article-body { padding: 24px var(--padding-desktop); }
         .article-body h1 { 
             font-family: var(--font-mono);
             font-size: 16px; 
@@ -314,7 +305,6 @@
         }
         .meta-bar span { display: flex; align-items: center; gap: 4px; opacity: 0.9; }
 
-        /* ===== CONTENT STYLING ===== */
         .content { 
             font-family: var(--font-mono);
             font-size: 13px; 
@@ -322,6 +312,11 @@
             color: var(--text-primary);
             font-weight: 300;
             letter-spacing: 0.1px;
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
         }
         .content p { margin-bottom: 16px; text-align: justify; }
         .content h2 { 
@@ -349,7 +344,6 @@
         .content ul, .content ol { margin: 16px 0; padding-left: 22px; }
         .content li { margin-bottom: 10px; font-weight: 300; }
 
-        /* ===== WELCOME SECTION ===== */
         .welcome-section { text-align: center; padding: 48px 20px; }
         .welcome-section h1 { 
             font-family: var(--font-mono);
@@ -392,7 +386,6 @@
             font-weight: 400;
         }
 
-        /* ===== UPLOAD BUTTON ===== */
         .upload-btn { 
             position: fixed; 
             bottom: 20px; 
@@ -420,7 +413,6 @@
         }
         .upload-btn:active { transform: scale(0.97); }
 
-        /* ===== MODAL ===== */
         .modal-overlay { 
             display: none; 
             position: fixed; 
@@ -549,7 +541,6 @@
             transform: none;
         }
 
-        /* ===== FOOTER ===== */
         .footer { 
             text-align: center; 
             padding: 18px; 
@@ -561,7 +552,6 @@
             letter-spacing: 0.3px;
         }
 
-        /* ===== UTILITIES ===== */
         .loading { text-align: center; padding: 48px; color: var(--primary-soft); font-weight: 300; font-size: 13px; }
         .error-msg { 
             background: rgba(192, 57, 43, 0.06); 
@@ -576,9 +566,15 @@
         }
         .error-msg small { display: block; margin-top: 6px; opacity: 0.85; font-size: 10px; }
 
-        /* ===== RESPONSIVE ===== */
+        /* ✅ FIX: MOBILE RESPONSIVE - Sidebar toggle */
         @media (max-width: 768px) {
             .hamburger { display: flex; }
+            
+            .navbar {
+                padding: 12px var(--padding-mobile);
+            }
+            
+            /* ✅ Sidebar hidden di mobile, muncul saat class 'open' ditambahkan */
             .sidebar { 
                 position: fixed; 
                 top: 56px; 
@@ -589,17 +585,58 @@
                 transform: translateX(-100%); 
                 box-shadow: 5px 0 25px rgba(38, 50, 56, 0.12);
                 border-right: none;
+                transition: transform 0.3s ease;
+                z-index: 500;
             }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { padding: 18px 14px; }
-            .article-body h1 { font-size: 15px; }
-            .article-cover { height: 120px; font-size: 24px; }
-            .welcome-section h1 { font-size: 16px; }
-            .welcome-section p { font-size: 12px; }
-            .content { font-size: 12px; line-height: 1.8; }
+            
+            .sidebar.open { 
+                transform: translateX(0); 
+            }
+            
+            .main-content { 
+                padding: 18px var(--padding-mobile); 
+            }
+            
+            .article-body { 
+                padding: 20px var(--padding-mobile); 
+            }
+            
+            .article-body h1 { 
+                font-size: 15px;
+                padding: 0;
+            }
+            
+            .article-cover { 
+                height: 120px; 
+                font-size: 24px; 
+            }
+            
+            .welcome-section { 
+                padding: 40px var(--padding-mobile); 
+            }
+            
+            .welcome-section h1 { 
+                font-size: 16px; 
+            }
+            
+            .welcome-section p { 
+                font-size: 12px; 
+            }
+            
+            .content { 
+                font-size: 12px; 
+                line-height: 1.8;
+            }
+            
+            .modal-body {
+                padding: 20px var(--padding-mobile);
+            }
+            
+            .modal-header {
+                padding: 16px var(--padding-mobile);
+            }
         }
 
-        /* ===== SUBTLE ANIMATIONS ===== */
         .article-list li a { transition: all 0.2s ease; }
         .form-group input, .form-group textarea, .form-group select { transition: all 0.2s ease; }
         .upload-btn { transition: all 0.25s ease; }
